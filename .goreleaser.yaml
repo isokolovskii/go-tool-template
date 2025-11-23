@@ -1,0 +1,144 @@
+version: 2
+
+project_name: library_name
+report_sizes: true
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: library_name
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+      - freebsd
+      - openbsd
+    goarch:
+      - amd64
+      - arm64
+      - "386"
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: linux
+        goarch: "386"
+      - goos: freebsd
+        goarch: "386"
+      - goos: openbsd
+        goarch: "386"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/library_owner/library_name/internal/version.commit={{.Commit}}
+archives:
+  - id: library_name
+    formats: [binary]
+    ids:
+      - library_name
+    files:
+      - none*
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- if eq .Os "darwin" }}MacOS
+      {{- else }}{{ title .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+
+  - id: library_name-gz
+    formats: [gz]
+    ids:
+      - library_name
+    files:
+    - none*
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- if eq .Os "darwin" }}MacOS
+      {{- else }}{{ title .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+
+  - id: library_name-linux-aarch64
+    formats: [binary]
+    ids:
+      - library_name-linux-aarch64
+    files:
+      - none*
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- if eq .Os "darwin" }}MacOS
+      {{- else }}{{ title .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else if eq .Arch "arm64" }}aarch64
+      {{- else }}{{ .Arch }}{{ end }}
+
+  - id: library_name-linux-aarch64-gz
+    formats: [gz]
+    ids:
+      - library_name-linux-aarch64
+    files:
+      - none*
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- if eq .Os "darwin" }}MacOS
+      {{- else }}{{ title .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else if eq .Arch "arm64" }}aarch64
+      {{- else }}{{ .Arch }}{{ end }}
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ .Tag }}"
+
+changelog:
+  use: github
+  sort: asc
+  abbrev: 7
+  format: '{{ .Message }} by @{{ .AuthorUsername }} ({{ .SHA }})'
+  filters:
+    exclude:
+      - '^chore\(release\):'
+  groups:
+    - title: ':rocket: New features'
+      regexp: '^feat.*'
+      order: 0
+    - title: ':bug: Bug fixes'
+      regexp: '^fix.*'
+      order: 1
+    - title: ':screwdriver:chore'
+      regexp: '^chore.*'
+      order: 2
+    - title: ':zap: Performance'
+      regexp: '^perf.*'
+      order: 3
+    - title: ':pencil: Refactor'
+      regexp: '^refactor.*'
+      order: 4
+    - title: ':books: Documentation'
+      regexp: '^docs.*'
+      order: 5
+    - title: ':test_tube: Tests'
+      regexp: '^test.*'
+      order: 6
+    - title: ':building_construction: ci'
+      regexp: '^(ci|build).*'
+      order: 7
+
+release:
+  prerelease: auto
+  make_latest: true
